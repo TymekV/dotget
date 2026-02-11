@@ -3,14 +3,17 @@ use std::collections::HashMap;
 use schemars::JsonSchema;
 use serde::Deserialize;
 
+use crate::package_managers::PackageManagerName;
+
 #[derive(Deserialize, JsonSchema, Debug, Clone)]
 pub struct Config {
     pub conditions: HashMap<String, Condition>,
+    pub groups: Vec<Group>,
 }
 
 /// Operating system type constraint.
 #[derive(Deserialize, JsonSchema, Debug, Clone)]
-#[serde(tag = "os", rename_all = "lowercase")]
+#[serde(tag = "kind", rename_all = "lowercase")]
 pub enum OsType {
     Windows,
     MacOS {
@@ -35,7 +38,8 @@ pub enum OsType {
         /// - `"fedora"`
         ///
         /// If multiple values are provided, they are treated as a logical OR.
-        distro: Option<Vec<String>>,
+        #[serde(default)]
+        distro: Vec<String>,
 
         /// Distribution family identifiers matched against the
         /// `ID_LIKE` field in `/etc/os-release`.
@@ -45,7 +49,8 @@ pub enum OsType {
         /// - `"rhel"` (matches Fedora, Rocky, AlmaLinux, etc.)
         ///
         /// If multiple values are provided, they are treated as a logical OR.
-        distro_like: Option<Vec<String>>,
+        #[serde(default)]
+        distro_like: Vec<String>,
     },
 }
 
@@ -56,11 +61,13 @@ pub enum OsType {
 /// If a field is left empty, it does not restrict matching.
 #[derive(Deserialize, JsonSchema, Debug, Clone)]
 pub struct Condition {
-    #[serde(flatten)]
-    pub os: Option<OsType>,
+    /// Operating system constraints.
+    /// Works like a logical OR.
+    pub os: Vec<OsType>,
 
-    /// Processor architecture constraint.
-    pub architecture: Option<String>,
+    /// Processor architecture constraints.
+    /// Works like a logical OR.
+    pub architecture: Option<Vec<String>>,
 
     /// Hostname glob pattern constraint.
     ///
@@ -80,5 +87,22 @@ pub struct Condition {
 #[derive(Deserialize, JsonSchema, Debug, Clone)]
 pub struct Group {
     pub conditions: Vec<String>,
-    pub packages: HashMap<String, Vec<String>>,
+    pub packages: HashMap<PackageManagerName, Vec<String>>,
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+
+    use schemars::schema_for;
+
+    use super::*;
+
+    #[test]
+    fn generate_schema() {
+        let global_schema = schema_for!(Config);
+        let global_schema =
+            serde_json::to_string(&global_schema).expect("Failed to serialize schema");
+        fs::write("schema.json", global_schema).expect("Failed to write schema");
+    }
 }

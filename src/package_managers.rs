@@ -7,7 +7,7 @@ pub trait PackageManager {
 
 macro_rules! package_managers {
     ($( $name:ident => $struct:ty ),* $(,)?) => {
-        #[derive(serde::Deserialize, schemars::JsonSchema, Debug, Clone)]
+        #[derive(serde::Deserialize, schemars::JsonSchema, Debug, Clone, Eq, PartialEq, Hash)]
         #[serde(rename_all = "lowercase")]
         pub enum PackageManagerName {
             $($name),*
@@ -23,13 +23,13 @@ macro_rules! package_managers {
     };
 }
 
-// struct Brew;
+struct Brew;
 
-// #[async_trait]
-// impl PackageManager for Brew {
-//     async fn install(packages: Vec<String>) {}
-// }
+#[async_trait]
+impl PackageManager for Brew {
+    async fn install(packages: Vec<String>) {}
+}
 
-// package_managers!(
-//     Brew => Brew,
-// );
+package_managers!(
+    Brew => Brew,
+);
