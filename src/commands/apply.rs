@@ -1,7 +1,7 @@
 use clap::Parser;
 use miette::Result;
 
-use crate::{GlobalArgs, config::read_config};
+use crate::{GlobalArgs, config::read_config, package_managers::PackageManagers};
 
 #[derive(Parser, Debug, Clone)]
 pub struct ApplyArgs {
@@ -10,7 +10,14 @@ pub struct ApplyArgs {
     pub dry_run: bool,
 }
 
-pub async fn apply(global_args: GlobalArgs, args: ApplyArgs) -> Result<()> {
+pub async fn apply(
+    managers: PackageManagers,
+    global_args: GlobalArgs,
+    args: ApplyArgs,
+) -> Result<()> {
     let config = read_config(&global_args.file).await?;
+    managers
+        .get_installed(crate::package_managers::PackageManagerName::Pacman)
+        .await?;
     Ok(())
 }

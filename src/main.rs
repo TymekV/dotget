@@ -16,6 +16,7 @@ use tracing_subscriber::{Layer, fmt, layer::SubscriberExt, util::SubscriberInitE
 
 use crate::{
     commands::{apply, lint},
+    package_managers::PackageManagers,
     report_handler::ErrorReportHandler,
 };
 
@@ -64,11 +65,13 @@ async fn main() -> Result<()> {
         .with(indicatif_layer)
         .init();
 
+    let managers = PackageManagers::new()?;
+
     let cli = Cli::parse();
 
     let result = match cli.command {
-        Commands::Apply { args } => apply::apply(cli.args, args).await,
-        Commands::Lint => lint::lint(cli.args).await,
+        Commands::Apply { args } => apply::apply(managers, cli.args, args).await,
+        Commands::Lint => lint::lint(managers, cli.args).await,
     };
 
     if let Err(e) = result {
