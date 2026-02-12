@@ -47,6 +47,7 @@ impl PackageManager for Pacman {
 
     #[cfg(target_os = "linux")]
     async fn install(&self, packages: Vec<String>) -> Result<()> {
-        todo!()
+        dbg!("install", &packages);
+        Ok(())
     }
 }

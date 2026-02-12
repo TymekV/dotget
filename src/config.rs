@@ -3,6 +3,7 @@ use std::{collections::HashMap, path::Path};
 use miette::Result;
 use schemars::JsonSchema;
 use serde::Deserialize;
+use strum::EnumString;
 use tokio::fs;
 
 use crate::{
@@ -16,7 +17,8 @@ pub struct Config {
     pub groups: Vec<Group>,
 }
 
-#[derive(Deserialize, JsonSchema, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Deserialize, JsonSchema, EnumString, Debug, Clone, Copy, PartialEq, Eq)]
+#[strum(serialize_all = "lowercase")]
 pub enum OsName {
     Windows,
     MacOS,
@@ -24,7 +26,7 @@ pub enum OsName {
 }
 
 /// Operating system type constraint.
-#[derive(Deserialize, JsonSchema, Debug, Clone)]
+#[derive(Deserialize, JsonSchema, Debug, Clone, PartialEq, Eq)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum OsType {
     Windows,
@@ -65,7 +67,7 @@ pub enum OsType {
 }
 
 impl OsType {
-    fn name(&self) -> OsName {
+    pub fn name(&self) -> OsName {
         match self {
             OsType::Windows => OsName::Windows,
             OsType::MacOS { .. } => OsName::MacOS,
@@ -83,7 +85,7 @@ impl OsType {
 pub struct Condition {
     /// Operating system constraints.
     /// Works like a logical OR.
-    pub os: Vec<OsType>,
+    pub os: Option<Vec<OsType>>,
 
     /// Processor architecture constraints.
     /// Works like a logical OR.

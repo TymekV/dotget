@@ -1,6 +1,7 @@
 mod commands;
 mod config;
 mod errors;
+mod filter;
 mod formatter;
 mod package_managers;
 mod report_handler;

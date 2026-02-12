@@ -4,6 +4,8 @@ use std::collections::HashMap;
 
 use async_trait::async_trait;
 use miette::Result;
+use owo_colors::OwoColorize;
+use tracing::info;
 
 use crate::{config::OsName, errors::UnsupportedPlatform};
 
@@ -34,7 +36,7 @@ pub trait PackageManager {
 
 macro_rules! package_managers {
     ($( $name:ident => $struct:ty ),* $(,)?) => {
-        #[derive(serde::Deserialize, schemars::JsonSchema, Debug, Clone, Eq, PartialEq, Hash)]
+        #[derive(serde::Deserialize, schemars::JsonSchema, Debug, Clone, Eq, PartialEq, Hash, Copy)]
         #[serde(rename_all = "lowercase")]
         pub enum PackageManagerName {
             $($name),*
@@ -76,11 +78,30 @@ macro_rules! package_managers {
                 }
             }
         }
-
-
     };
 }
 
 package_managers!(
     Pacman => pacman::Pacman,
 );
+
+impl PackageManagers {
+    pub async fn install_missing(
+        &self,
+        manager: PackageManagerName,
+        packages: Vec<String>,
+    ) -> Result<()> {
+        let installed = self.get_installed(manager).await?;
+
+        let missing = packages
+            .into_iter()
+            .filter(|package| !installed.contains_key(package))
+            .collect::<Vec<_>>();
+
+        info!("Found {} missing packages", missing.len().cyan().bold());
+
+        self.install(manager, missing).await?;
+
+        Ok(())
+    }
+}
