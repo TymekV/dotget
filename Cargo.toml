@@ -3,6 +3,10 @@ name = "dotget"
 version = "0.1.0"
 edition = "2024"
 
+[[bin]]
+name = "dotget"
+path = "src/main.rs"
+
 [dependencies]
 async-trait = "0.1.89"
 clap = { version = "4.5.58", features = ["derive"] }

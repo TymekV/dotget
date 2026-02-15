@@ -123,4 +123,19 @@ impl<'a> Visit for FieldWriter<'a> {
             .unwrap();
         }
     }
+
+    fn record_str(&mut self, field: &Field, value: &str) {
+        if field.name() == "message" {
+            write!(self.string, "{}", value).unwrap();
+        } else {
+            write!(
+                self.string,
+                " {}{}{}",
+                field.name().dimmed().italic(),
+                "=".dimmed(),
+                value
+            )
+            .unwrap();
+        }
+    }
 }

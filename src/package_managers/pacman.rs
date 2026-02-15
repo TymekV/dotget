@@ -84,13 +84,13 @@ impl PackageManager for Pacman {
     ) -> Result<(Self::Options, usize)> {
         let repo = desired.repo.clone().map(|r| {
             r.into_iter()
-                .filter(|p| installed.get(p).is_some_and(|package| !package.aur))
+                .filter(|p| !installed.get(p).is_some_and(|package| !package.aur))
                 .collect::<Vec<_>>()
         });
 
         let aur = desired.aur.clone().map(|r| {
             r.into_iter()
-                .filter(|p| installed.get(p).is_some_and(|package| package.aur))
+                .filter(|p| !installed.get(p).is_some_and(|package| package.aur))
                 .collect::<Vec<_>>()
         });
 
@@ -115,12 +115,15 @@ impl PackageManager for Pacman {
         use tokio::process::Command;
         use tracing::info;
 
+        dbg!(&options);
+
         if let Some(repo_packages) = &options.repo
-            && repo_packages.is_empty()
+            && !repo_packages.is_empty()
         {
             use std::process::Stdio;
+            let separator = ",".dimmed().to_string();
             info!(
-                packages = ?repo_packages,
+                packages = repo_packages.join(&separator),
                 "Installing {} repo packages",
                 repo_packages.len().blue().bold()
             );
@@ -145,7 +148,7 @@ impl PackageManager for Pacman {
         }
 
         if let Some(aur_packages) = &options.aur
-            && aur_packages.is_empty()
+            && !aur_packages.is_empty()
         {
             let helper = select_aur_helper(options.force_aur_helper.clone())
                 .await

@@ -41,6 +41,10 @@ pub trait PackageManager {
         let installed = self.get_installed().await?;
 
         let (missing, count) = self.filter_missing(installed, &config)?;
+        if count == 0 {
+            info!("No missing packages");
+            return Ok(());
+        }
         info!("Found {} missing packages", count.blue().bold());
 
         self.install(missing).await?;
