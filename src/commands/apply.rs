@@ -5,9 +5,9 @@ use tracing::{info, instrument};
 
 use crate::{
     GlobalArgs,
-    config::read_config,
+    config::{Group, read_config},
     filter::{check_condition, get_system_info},
-    package_managers::{PackageManagerConfig, PackageManagers},
+    package_managers::PackageManagers,
 };
 
 #[derive(Parser, Debug, Clone)]
@@ -18,9 +18,15 @@ pub struct ApplyArgs {
 }
 
 #[instrument(skip(managers))]
-async fn install_batch(managers: &PackageManagers, batch: PackageManagerConfig) -> Result<()> {
-    info!("Installing {} packages", batch.blue().bold());
-    managers.install_missing(batch).await?;
+async fn install_group(managers: &PackageManagers, group: Group) -> Result<()> {
+    info!(
+        "Installing {}",
+        group.name.unwrap_or("untitled".to_string()).blue().bold()
+    );
+    for batch in group.packages {
+        // info!("Installing {} packages", batch.blue().bold());
+        managers.install_missing(batch).await?;
+    }
     Ok(())
 }
 
@@ -42,9 +48,7 @@ pub async fn apply(
     });
 
     for group in matching_groups {
-        for batch in group.packages {
-            install_batch(&managers, batch).await?;
-        }
+        install_group(&managers, group).await?;
     }
 
     Ok(())

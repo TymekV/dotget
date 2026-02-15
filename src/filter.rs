@@ -39,6 +39,9 @@ pub fn check_condition(
 ) -> bool {
     // Check label
     if let Some(label) = &condition.label {
+        if global_args.labels.is_empty() && condition.default == Some(true) {
+            return true;
+        }
         return global_args.labels.contains(label);
     }
 
