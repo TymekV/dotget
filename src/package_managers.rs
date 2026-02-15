@@ -41,7 +41,7 @@ pub trait PackageManager {
         let installed = self.get_installed().await?;
 
         let (missing, count) = self.filter_missing(installed, &config)?;
-        info!("Found {} missing packages", count.cyan().bold());
+        info!("Found {} missing packages", count.blue().bold());
 
         self.install(missing).await?;
 
@@ -64,7 +64,7 @@ macro_rules! package_managers {
             $($name),*
         }
 
-        #[derive(serde::Deserialize, schemars::JsonSchema, Debug, Clone)]
+        #[derive(serde::Deserialize, schemars::JsonSchema, strum::Display, Debug, Clone)]
         #[serde(tag = "manager", content = "install", rename_all = "lowercase")]
         pub enum PackageManagerConfig {
             $($name(<$struct as PackageManager>::Options)),*

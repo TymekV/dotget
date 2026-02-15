@@ -27,6 +27,7 @@ where
     false
 }
 
+// TODO: Format spans
 impl<S, N> FormatEvent<S, N> for EventFormatter
 where
     S: Subscriber + for<'a> LookupSpan<'a>,
@@ -93,7 +94,7 @@ where
         write!(writer, "{prefix} ")?;
         // ctx.field_format().format_fields(writer.by_ref(), event)?;
 
-        let mut visitor = StringVisitor {
+        let mut visitor = FieldWriter {
             string: &mut String::new(),
         };
         event.record(&mut visitor);
@@ -103,11 +104,11 @@ where
     }
 }
 
-pub struct StringVisitor<'a> {
+pub struct FieldWriter<'a> {
     string: &'a mut String,
 }
 
-impl<'a> Visit for StringVisitor<'a> {
+impl<'a> Visit for FieldWriter<'a> {
     fn record_debug(&mut self, field: &Field, value: &dyn fmt::Debug) {
         if field.name() == "message" {
             write!(self.string, "{:?}", value).unwrap();

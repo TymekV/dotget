@@ -111,12 +111,19 @@ impl PackageManager for Pacman {
     async fn install(&self, options: Self::Options) -> Result<()> {
         use crate::package_managers::pacman::utils::select_aur_helper;
         use miette::Context;
+        use owo_colors::OwoColorize;
         use tokio::process::Command;
+        use tracing::info;
 
         if let Some(repo_packages) = &options.repo
             && repo_packages.is_empty()
         {
             use std::process::Stdio;
+            info!(
+                packages = ?repo_packages,
+                "Installing {} repo packages",
+                repo_packages.len().blue().bold()
+            );
 
             let status = Command::new("sudo")
                 .arg("pacman")
@@ -143,6 +150,8 @@ impl PackageManager for Pacman {
             let helper = select_aur_helper(options.force_aur_helper.clone())
                 .await
                 .into_diagnostic()?;
+
+            info!("Using {}", helper.blue().bold());
 
             let status = Command::new(&helper)
                 .arg("-S")
